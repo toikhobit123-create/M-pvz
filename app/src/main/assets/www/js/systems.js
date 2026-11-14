@@ -6,7 +6,7 @@
 class CollisionSystem {
   static handleProjectileZombieCollisions(projectiles, zombies, gameState) {
     for (const p of projectiles) {
-      if (!p.alive || p.isLobbed || p.isRollingPoisonBoulder || p.isEnergyWave) continue;
+      if (!p.alive || p.isLobbed || p.isRollingPoisonBoulder || p.isEnergyWave || p.isJhinBullet) continue;
 
       let targetZombie = null;
       let minX = Infinity;

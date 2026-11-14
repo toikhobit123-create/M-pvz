@@ -245,6 +245,18 @@ const PLANT_SHOWCASE_DATA = {
     hp: '250 HP',
     desc: 'Đánh cơ bản 50 DMG/0.5s trong 2 ô tính từ bản thân. Skill 1: tích đủ 5s khi tấn công zombie sẽ bắn sóng năng lượng gây 500 DMG lên zombie đầu tiên dính chiêu. Skill 2: khi chết dừng thời gian 1s, hút 5 zombie gần nhà nhất về ô Galio và gây 1500 DMG.',
     svg: `<svg viewBox="0 0 44 44" width="100%" height="100%"><polygon points="8,18 15,12 16,24" fill="#ffd54f" stroke="#8d6e63" stroke-width="1"/><polygon points="36,18 29,12 28,24" fill="#ffd54f" stroke="#8d6e63" stroke-width="1"/><rect x="14" y="12" width="16" height="22" rx="5" fill="#eceff1" stroke="#b0bec5" stroke-width="1.4"/><circle cx="22" cy="22" r="4" fill="#00e5ff"/></svg>`
+  },
+  jhinplant: {
+    id: 'jhinplant',
+    name: 'Jhinplant (Hoa Súng Tử Vong)',
+    group: 'Xạ Thủ Nhịp 4',
+    cost: 140,
+    dmg: '125 (1s) · Viên IV: 500 · Sen: 444 AoE 2×2',
+    rate: '4 viên (1s/viên) · Nạp 4s',
+    cooldown: '4.0s',
+    hp: '440 HP',
+    desc: 'Bắn lần lượt 4 viên đạn mỗi 1s gây 125 DMG, viên thứ 4 gây x4 sát thương (500 DMG) rồi nạp đạn 4s. Khi viên thứ 4 hạ gục Zombie sẽ đặt Bẫy Hoa Sen tại ô đó (không thể trồng cây lên), phát nổ 444 DMG AoE 2×2 ô khi Zombie bước vào.',
+    svg: `<svg viewBox="0 0 44 44" width="100%" height="100%"><polygon points="22,6 30,15 37,22 29,29 22,37 15,29 7,22 14,15" fill="#6a1b9a" stroke="#ce93d8" stroke-width="1.4"/><ellipse cx="22" cy="22" rx="7" ry="9" fill="#f3e5f5" stroke="#311b92" stroke-width="1.2"/><circle cx="25" cy="20" r="2" fill="#ff1744"/><line x1="22" y1="11" x2="39" y2="11" stroke="#ff1744" stroke-width="2"/></svg>`
   }
 };
 
@@ -389,7 +401,8 @@ class Game {
       'sun_shroom',
       'goo_peashooter',
       'magnet_shroom',
-      'galio'
+      'galio',
+      'jhinplant'
     ];
   }
 
@@ -1165,6 +1178,7 @@ class Game {
     this.floatingTexts = [];
     this.attackEffects = []; // Hiệu ứng phạm vi & chiêu thức tấn công tầm gần
     this.scorchedTiles = []; // Các ô bị thiêu rụi không thể trồng cây trong 10s
+    this.lotusTraps = [];    // Bẫy Hoa Sen của Jhinplant (chặn trồng cây, nổ 444 DMG AoE 2x2)
     this.fireballs = [];     // Cầu lửa của Zombot Dark Dragon
     this.timeStopTimer = 0;  // Bộ đếm dừng thời gian (Skill 2 Galio)
 
@@ -1361,6 +1375,8 @@ class Game {
       for (const fImp of this.flyingImps) {
         fImp.update(dt, this);
       }
+      // 4.6. Cập nhật Bẫy Hoa Sen của Jhinplant
+      this.updateLotusTraps(dt);
     } else {
       // Zombie đã chết vẫn hoàn tất hoạt ảnh tan biến trong lúc dừng thời gian
       for (const zombie of this.zombies) {
@@ -1465,6 +1481,9 @@ class Game {
     this.gasClouds = this.gasClouds.filter(c => c.timer < c.maxDuration);
     this.flyingImps = this.flyingImps.filter(f => f.alive);
     this.laserBeams = this.laserBeams.filter(l => l.timer > 0);
+    if (this.lotusTraps) {
+      this.lotusTraps = this.lotusTraps.filter(t => t.alive);
+    }
 
     // 13.5. Cập nhật và dọn dẹp chữ nổi (Floating texts như SPUDOW!)
     if (this.floatingTexts) {
@@ -1498,6 +1517,97 @@ class Game {
       existing.maxTimer = Math.max(existing.maxTimer, duration);
     } else {
       this.scorchedTiles.push({ row, col, timer: duration, maxTimer: duration });
+    }
+  }
+
+  spawnLotusTrap(row, x, y) {
+    if (!this.lotusTraps) this.lotusTraps = [];
+    const safeRow = Math.max(0, Math.min(CONFIG.ROWS - 1, row));
+    const col = Math.max(0, Math.min(CONFIG.COLS - 1, Math.floor((x - CONFIG.GRID_OFFSET_X) / CONFIG.CELL_WIDTH)));
+    const trapX = CONFIG.GRID_OFFSET_X + col * CONFIG.CELL_WIDTH + CONFIG.CELL_WIDTH / 2;
+    const trapY = CONFIG.GRID_OFFSET_Y + safeRow * CONFIG.CELL_HEIGHT + CONFIG.CELL_HEIGHT / 2;
+    const dmg = (typeof PLANT_CONFIG !== 'undefined' && PLANT_CONFIG.jhinplant && PLANT_CONFIG.jhinplant.lotusTrapDamage) || 444;
+
+    const existing = this.lotusTraps.find(t => t.alive && t.row === safeRow && t.col === col);
+    if (existing) {
+      existing.animTime = 0;
+      existing.damage = dmg;
+    } else {
+      this.lotusTraps.push({
+        id: generateId(),
+        row: safeRow,
+        col: col,
+        x: trapX,
+        y: trapY,
+        animTime: 0,
+        damage: dmg,
+        alive: true
+      });
+    }
+    this.spawnParticles(trapX, trapY, '#ce93d8', 10);
+    this.spawnFloatingText(trapX, trapY - 22, 'BẪY HOA SEN! 🪷', '#e040fb', 15);
+  }
+
+  updateLotusTraps(dt) {
+    if (!this.lotusTraps || this.lotusTraps.length === 0) return;
+
+    for (const trap of this.lotusTraps) {
+      if (!trap.alive) continue;
+      trap.animTime += dt;
+
+      const triggerZ = this.zombies.find(z => {
+        if (!z.alive || z.isHypnotized || z.isObstacle) return false;
+        const isBossHitbox = z.type === 'zombot_dark_dragon' && (trap.row === z.bossRow || trap.row === z.bossRow + 1);
+        const rowMatch = z.row === trap.row || isBossHitbox;
+        return rowMatch && Math.abs(z.x - trap.x) <= CONFIG.CELL_WIDTH * 0.48;
+      });
+
+      if (triggerZ) {
+        trap.alive = false;
+
+        // Vùng nổ chính xác 2x2 ô (4 ô liền kề)
+        const minCol = (triggerZ.x >= trap.x && trap.col < CONFIG.COLS - 1) ? trap.col : Math.max(0, trap.col - 1);
+        const maxCol = Math.min(CONFIG.COLS - 1, minCol + 1);
+        const minRow = (trap.row < CONFIG.ROWS - 1) ? trap.row : Math.max(0, trap.row - 1);
+        const maxRow = Math.min(CONFIG.ROWS - 1, minRow + 1);
+
+        const startX = CONFIG.GRID_OFFSET_X + minCol * CONFIG.CELL_WIDTH;
+        const endX = CONFIG.GRID_OFFSET_X + (maxCol + 1) * CONFIG.CELL_WIDTH;
+        const centerX = (startX + endX) / 2;
+        const centerY = CONFIG.GRID_OFFSET_Y + ((minRow + maxRow + 1) / 2) * CONFIG.CELL_HEIGHT;
+
+        const dmg = trap.damage || 444;
+        for (const z of this.zombies) {
+          if (!z.alive || z.isHypnotized || z.isObstacle) continue;
+          const isBoss = z.type === 'zombot_dark_dragon';
+          const rowOverlap = isBoss
+            ? ((z.bossRow >= minRow && z.bossRow <= maxRow) || (z.bossRow + 1 >= minRow && z.bossRow + 1 <= maxRow))
+            : (z.row >= minRow && z.row <= maxRow);
+          const colPad = isBoss ? 48 : 24;
+          if (rowOverlap && z.x >= startX - colPad && z.x <= endX + colPad) {
+            z.takeDamage(dmg);
+            this.spawnParticles(z.x, z.y - 10, '#ff1744', 6);
+          }
+        }
+
+        if (this.audio && this.audio.playExplosion) {
+          this.audio.playExplosion('lotus');
+        }
+        this.spawnParticles(centerX, centerY, '#e040fb', 20);
+        this.spawnParticles(centerX, centerY, '#ff1744', 18);
+        this.spawnFloatingText(centerX, centerY - 22, `HOA SEN NỞ! -${dmg} 🪷`, '#e040fb', 19);
+        this.spawnAttackEffect({
+          kind: 'lotus_2x2',
+          x: centerX,
+          y: centerY,
+          row: minRow,
+          minRow: minRow,
+          maxRow: maxRow,
+          startX: startX,
+          endX: endX,
+          duration: 0.65
+        });
+      }
     }
   }
 
@@ -1624,6 +1734,16 @@ class Game {
 
     const hasPlant = this.plants.some(p => p.alive && p.row === row && p.col === col);
     if (hasPlant) return true;
+
+    // Kiểm tra có Bẫy Hoa Sen của Jhinplant đang nằm trên ô này không (không thể đặt cây lên)
+    if (this.lotusTraps && this.lotusTraps.some(t => t.alive && t.row === row && t.col === col)) {
+      if (this.spawnFloatingText) {
+        const cx = CONFIG.GRID_OFFSET_X + col * CONFIG.CELL_WIDTH + CONFIG.CELL_WIDTH / 2;
+        const cy = CONFIG.GRID_OFFSET_Y + row * CONFIG.CELL_HEIGHT + CONFIG.CELL_HEIGHT / 2;
+        this.spawnFloatingText(cx, cy, 'Ô CÓ HOA SEN! 🪷', '#e040fb', 15);
+      }
+      return true;
+    }
 
     // Kiểm tra có Bia Mộ (Tombstone) chiếm ô này không
     const cellCenterX = CONFIG.GRID_OFFSET_X + col * CONFIG.CELL_WIDTH + CONFIG.CELL_WIDTH / 2;

@@ -1,3 +1,19 @@
 <resources>
     <string name="app_name">PvZ Tower Defense</string>
+    <string name="game_subtitle">CHIẾN DỊCH BẢO VỆ NGÔI NHÀ ĐÊM HẮC HÓA</string>
+    <string name="menu_campaign">Bản Đồ Chiến Dịch</string>
+    <string name="menu_resume_level">Tiếp Tục Cấp %1$d</string>
+    <string name="menu_sandbox">Chế Độ Sandbox (9999 Sun)</string>
+    <string name="menu_almanac">Từ Điển (Almanac)</string>
+    <string name="menu_settings">Cài Đặt &amp; Dữ Liệu</string>
+    <string name="world_map_title">Bản Đồ Chiến Dịch</string>
+    <string name="world_map_subtitle">Chọn cấp độ để lập đội hình và phòng thủ</string>
+    <string name="settings_title">Cài Đặt &amp; Dữ Liệu Lưu</string>
+    <string name="almanac_title">Từ Điển Thực Vật &amp; Xác Sống</string>
+    <string name="pause_title">Tạm Dừng Trận Đấu</string>
+    <string name="lets_rock">VÀO TRẬN!</string>
+    <string name="back">Quay lại</string>
+    <string name="close">Đóng</string>
+    <string name="confirm">Xác nhận</string>
+    <string name="cancel">Hủy</string>
 </resources>

@@ -125,6 +125,40 @@ class AudioSystem {
     return this.isMuted;
   }
 
+  setMuted(muted) {
+    this.isMuted = !!muted;
+    this.saveSettings();
+    if (this.ctx && this.masterGain) {
+      const now = this.ctx.currentTime;
+      this.masterGain.gain.cancelScheduledValues(now);
+      this.masterGain.gain.linearRampToValueAtTime(this.isMuted ? 0 : this.masterVolume, now + 0.05);
+    }
+  }
+
+  setVolumes(master, bgm, sfx) {
+    if (typeof master === 'number' && !isNaN(master)) {
+      this.masterVolume = Math.max(0, Math.min(1, master));
+    }
+    if (typeof bgm === 'number' && !isNaN(bgm)) {
+      this.bgmVolume = Math.max(0, Math.min(1, bgm));
+    }
+    if (typeof sfx === 'number' && !isNaN(sfx)) {
+      this.sfxVolume = Math.max(0, Math.min(1, sfx));
+    }
+    if (this.ctx) {
+      const now = this.ctx.currentTime;
+      if (this.masterGain) {
+        this.masterGain.gain.setTargetAtTime(this.isMuted ? 0 : this.masterVolume, now, 0.03);
+      }
+      if (this.bgmGain) {
+        this.bgmGain.gain.setTargetAtTime(this.bgmVolume, now, 0.03);
+      }
+      if (this.sfxGain) {
+        this.sfxGain.gain.setTargetAtTime(this.sfxVolume, now, 0.03);
+      }
+    }
+  }
+
   throttle(key, delayMs) {
     const now = Date.now();
     if (this.lastSoundTimes[key] && now - this.lastSoundTimes[key] < delayMs) {
@@ -326,6 +360,47 @@ class AudioSystem {
       gain.connect(this.sfxGain);
       osc.start(now);
       osc.stop(now + 0.08);
+    }
+  }
+
+  /**
+   * Sound: Tiếng súng bắn tỉa của Jhinplant (Viên thứ 4 uy lực hơn hẳn)
+   */
+  playJhinShot(isFourth = false) {
+    if (!this.ensureContext() || this.isMuted) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = isFourth ? 'sawtooth' : 'triangle';
+    osc.frequency.setValueAtTime(isFourth ? 520 : 680, now);
+    osc.frequency.exponentialRampToValueAtTime(isFourth ? 55 : 120, now + (isFourth ? 0.22 : 0.09));
+
+    gain.gain.setValueAtTime(isFourth ? 0.65 : 0.4, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + (isFourth ? 0.24 : 0.1));
+
+    osc.connect(gain);
+    gain.connect(this.sfxGain);
+    osc.start(now);
+    osc.stop(now + (isFourth ? 0.25 : 0.11));
+
+    if (this.noiseBuffer) {
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = this.noiseBuffer;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(isFourth ? 1400 : 1800, now);
+      filter.Q.setValueAtTime(1.4, now);
+
+      const nGain = this.ctx.createGain();
+      nGain.gain.setValueAtTime(isFourth ? 0.55 : 0.3, now);
+      nGain.gain.exponentialRampToValueAtTime(0.001, now + (isFourth ? 0.18 : 0.07));
+
+      noise.connect(filter);
+      filter.connect(nGain);
+      nGain.connect(this.sfxGain);
+      noise.start(now);
+      noise.stop(now + (isFourth ? 0.19 : 0.08));
     }
   }
 

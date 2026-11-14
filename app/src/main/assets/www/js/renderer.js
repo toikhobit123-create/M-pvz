@@ -49,6 +49,11 @@ class GameRenderer {
       this.drawScorchedTiles(ctx, gameState.scorchedTiles);
     }
 
+    // 1.7. Vẽ Bẫy Hoa Sen của Jhinplant trên mặt sân
+    if (gameState.lotusTraps && gameState.lotusTraps.length > 0) {
+      this.drawLotusTraps(ctx, gameState.lotusTraps);
+    }
+
     // 2. Vẽ ô đánh dấu hover / preview trồng cây
     this.drawPlacementPreview(ctx, gameState, inputHandler);
 
@@ -594,6 +599,7 @@ class GameRenderer {
           glow: 0,
           stage: 1,
           armed: false,
+          isIcon: true,
           hp: 1,
           maxHp: 1
         };
@@ -719,6 +725,11 @@ class GameRenderer {
       if (isDamaged) {
         this.drawHealthBar(ctx, -20, -45, 40, 5, plant.hp / plant.maxHp, '#ff1744');
       }
+    } else if (plant.type === 'jhinplant' && !plant.isIcon) {
+      this.drawJhinAmmoHud(ctx, plant);
+      if (isDamaged) {
+        this.drawHealthBar(ctx, -20, -47, 40, 5, plant.hp / plant.maxHp, '#ff1744');
+      }
     } else if (isDamaged) {
       this.drawHealthBar(ctx, -20, -38, 40, 5, plant.hp / plant.maxHp, '#ff1744');
     }
@@ -788,6 +799,8 @@ class GameRenderer {
       this.drawSquashGraphics(ctx, plant);
     } else if (plant.type === 'galio') {
       this.drawGalioGraphics(ctx, plant);
+    } else if (plant.type === 'jhinplant') {
+      this.drawJhinplantGraphics(ctx, plant);
     } else {
       this.drawGenericPlantGraphics(ctx, plant);
     }
@@ -5613,6 +5626,54 @@ class GameRenderer {
       ctx.moveTo(-12, 0); ctx.quadraticCurveTo(0, 1, 12, 0);
       ctx.moveTo(-11, 4); ctx.quadraticCurveTo(0, 7, 11, 4);
       ctx.stroke();
+    } else if (proj.type === 'jhin_bullet' || proj.isJhinBullet) {
+      if (proj.isFourthShot) {
+        // Viên thứ 4: Đạn nghệ thuật tử thần đỏ-vàng rực rỡ
+        ctx.fillStyle = 'rgba(255, 23, 68, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(-14, 0, 16, 6.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#e040fb';
+        ctx.beginPath();
+        ctx.moveTo(14, 0);
+        ctx.lineTo(-8, -7.5);
+        ctx.lineTo(-4, 0);
+        ctx.lineTo(-8, 7.5);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.moveTo(12, 0);
+        ctx.lineTo(-5, -5);
+        ctx.lineTo(-5, 5);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#fff59d';
+        ctx.beginPath();
+        ctx.arc(2, 0, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Viên 1-3: Đạn xuyên tím-đỏ sắc bén
+        ctx.fillStyle = 'rgba(206, 147, 216, 0.45)';
+        ctx.beginPath();
+        ctx.ellipse(-9, 0, 9, 2.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#7b1fa2';
+        ctx.strokeStyle = '#ff5252';
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(10, 0);
+        ctx.lineTo(-6, -4);
+        ctx.lineTo(-3, 0);
+        ctx.lineTo(-6, 4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+      }
     } else {
       // Bào tử axit ăn mòn quái vật (Luminescent Acid Spore - Peashooter / Repeater)
       ctx.fillStyle = 'rgba(100, 221, 23, 0.45)';
@@ -5801,6 +5862,9 @@ class GameRenderer {
       } else if (eff.kind === 'blast_3x3') {
         fillCol = 'rgba(255, 23, 68, 0.20)';
         borderCol = eff.color || 'rgba(255, 82, 82, 0.8)';
+      } else if (eff.kind === 'lotus_2x2') {
+        fillCol = 'rgba(224, 64, 251, 0.22)';
+        borderCol = 'rgba(255, 23, 68, 0.88)';
       }
 
       ctx.save();
@@ -6053,6 +6117,27 @@ class GameRenderer {
         ctx.lineWidth = 3.2 * (1 - p * 0.5);
         ctx.beginPath();
         ctx.ellipse(cx, cy, Math.max(12, rx), Math.max(12, ry), 0, 0, Math.PI * 2);
+        ctx.stroke();
+      } else if (eff.kind === 'lotus_2x2') {
+        const cx = (eff.startX + eff.endX) / 2;
+        const cy = (topY + bottomY) / 2;
+        const expRatio = Math.min(1, p * 1.9);
+        const maxR = Math.min(zoneW, bottomY - topY) * 0.52 * expRatio;
+
+        // Cánh hoa sen tím-đỏ nở tung trong vùng nổ 2x2
+        for (let i = 0; i < 8; i++) {
+          const ang = (i * Math.PI) / 4 + p * 0.9;
+          const px = cx + Math.cos(ang) * maxR * 0.65;
+          const py = cy + Math.sin(ang) * maxR * 0.65;
+          ctx.fillStyle = i % 2 === 0 ? 'rgba(224, 64, 251, 0.72)' : 'rgba(255, 23, 68, 0.75)';
+          ctx.beginPath();
+          ctx.ellipse(px, py, Math.max(6, maxR * 0.35), Math.max(4, maxR * 0.16), ang, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.strokeStyle = 'rgba(255, 215, 64, 0.88)';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, Math.max(8, maxR * 0.4), 0, Math.PI * 2);
         ctx.stroke();
       }
 
@@ -7271,6 +7356,269 @@ class GameRenderer {
     ctx.restore();
   }
 
+  // Bẫy Hoa Sen Tử Vong (Jhinplant Skill): chặn đặt cây & nổ 444 DMG AoE 2x2
+  drawLotusTraps(ctx, traps) {
+    for (const trap of traps) {
+      if (!trap.alive) continue;
+      const t = trap.animTime || 0;
+      const pulse = 1 + Math.sin(t * 4.5) * 0.06;
+
+      ctx.save();
+      ctx.translate(trap.x, trap.y + 4);
+      ctx.scale(pulse, pulse);
+
+      // Vòng ấn tử vong dưới mặt cỏ (báo hiệu ô đã có bẫy)
+      ctx.fillStyle = 'rgba(74, 20, 140, 0.36)';
+      ctx.beginPath();
+      ctx.ellipse(0, 4, 28, 17, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255, 23, 68, 0.78)';
+      ctx.lineWidth = 1.6;
+      ctx.setLineDash([4, 3]);
+      ctx.beginPath();
+      ctx.ellipse(0, 4, 26, 15, 0, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 8 cánh hoa sen góc cạnh tím-đỏ
+      for (let i = 0; i < 8; i++) {
+        const angle = (i * Math.PI) / 4 + t * 0.4;
+        ctx.save();
+        ctx.rotate(angle);
+        ctx.fillStyle = i % 2 === 0 ? '#6a1b9a' : '#880e4f';
+        ctx.strokeStyle = '#ea80fc';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(0, -4);
+        ctx.lineTo(7, -15);
+        ctx.lineTo(0, -21);
+        ctx.lineTo(-7, -15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Nhụy hoa sen phát sáng đỏ rực
+      ctx.fillStyle = '#ff1744';
+      ctx.beginPath();
+      ctx.arc(0, 0, 6.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fff59d';
+      ctx.beginPath();
+      ctx.arc(0, 0, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.restore();
+    }
+  }
+
+  // Thanh hiển thị 4 viên đạn / nạp đạn 4s trên đầu Jhinplant
+  drawJhinAmmoHud(ctx, plant) {
+    ctx.save();
+    if (plant.isReloading) {
+      const total = plant.reloadDuration || 4.0;
+      const progress = Math.max(0, Math.min(1, 1 - (plant.reloadTimer || 0) / total));
+      ctx.fillStyle = 'rgba(10, 6, 16, 0.85)';
+      ctx.strokeStyle = '#ce93d8';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.roundRect(-18, -39, 36, 5, 2);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#ff1744';
+      ctx.beginPath();
+      ctx.roundRect(-17, -38, 34 * progress, 3, 1.5);
+      ctx.fill();
+    } else {
+      const ammo = plant.ammo !== undefined ? plant.ammo : 4;
+      const fired = 4 - ammo;
+      for (let i = 0; i < 4; i++) {
+        const px = -12 + i * 8;
+        const py = -37;
+        const available = i >= fired;
+        const isFourth = i === 3;
+        ctx.fillStyle = !available
+          ? 'rgba(40, 28, 52, 0.85)'
+          : (isFourth ? '#ff1744' : '#e040fb');
+        ctx.strokeStyle = available ? '#ffffff' : '#5e4375';
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.arc(px, py, isFourth ? 3.2 : 2.6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  }
+
+  // Jhinplant (Hoa Súng Tử Vong): Thược dược tím góc cạnh + mặt nạ nghệ thuật + ống ngắm la-de đỏ rực
+  drawJhinplantGraphics(ctx, plant) {
+    const t = plant.animTime || 0;
+    const isFourthReady = !plant.isReloading && plant.ammo === 1;
+    const recoil = (plant.state === 'shooting') ? -4 : 0;
+    const sway = Math.sin(t * 2.2) * 1.6;
+
+    ctx.save();
+    if (plant.flashTimer > 0) {
+      ctx.filter = 'brightness(1.5)';
+    }
+
+    // 1. Thân & lá góc cạnh tím thẫm
+    ctx.fillStyle = '#2d0b45';
+    ctx.strokeStyle = '#7b1fa2';
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(-4, 22);
+    ctx.lineTo(-20, 12);
+    ctx.lineTo(-7, 13);
+    ctx.lineTo(0, 22);
+    ctx.lineTo(18, 13);
+    ctx.lineTo(6, 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#3c1053';
+    ctx.beginPath();
+    ctx.moveTo(-3.5, 22);
+    ctx.lineTo(-2.5, -2);
+    ctx.lineTo(3.5, -2);
+    ctx.lineTo(4, 22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.save();
+    ctx.translate(recoil + sway * 0.35, -7);
+
+    // 2. Cánh hoa thược dược / hoa súng tím thẫm góc cạnh (8 cánh nhọn hiện đại)
+    const petalColors = ['#38006b', '#5e178c', '#4a148c', '#7b1fa2'];
+    for (let i = 0; i < 8; i++) {
+      const angle = (i * Math.PI) / 4;
+      ctx.save();
+      ctx.rotate(angle);
+      ctx.fillStyle = petalColors[i % petalColors.length];
+      ctx.strokeStyle = isFourthReady && i % 2 === 0 ? '#ff5252' : '#ce93d8';
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(0, -6);
+      ctx.lineTo(6.5, -16);
+      ctx.lineTo(0, -23);
+      ctx.lineTo(-6.5, -16);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Lớp cánh trong sắc nét
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * Math.PI) / 2 + Math.PI / 4;
+      ctx.save();
+      ctx.rotate(angle);
+      ctx.fillStyle = '#1f0836';
+      ctx.strokeStyle = '#ba68c8';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(0, -4);
+      ctx.lineTo(5, -12);
+      ctx.lineTo(0, -17);
+      ctx.lineTo(-5, -12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // 3. Trung tâm mặt nạ nghệ thuật lạnh lùng (Asymmetric Theatre Mask)
+    ctx.fillStyle = '#f3e5f5';
+    ctx.strokeStyle = '#240b36';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, -12);
+    ctx.lineTo(10, -6);
+    ctx.lineTo(8, 8);
+    ctx.lineTo(0, 12);
+    ctx.lineTo(-9, 7);
+    ctx.lineTo(-10, -6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Nửa bóng tối nghệ thuật bên trái mặt nạ
+    ctx.fillStyle = 'rgba(49, 27, 146, 0.35)';
+    ctx.beginPath();
+    ctx.moveTo(0, -12);
+    ctx.lineTo(-10, -6);
+    ctx.lineTo(-9, 7);
+    ctx.lineTo(0, 12);
+    ctx.closePath();
+    ctx.fill();
+
+    // Khe mắt lạnh lùng + con mắt ngắm đỏ rực
+    ctx.fillStyle = '#1a0826';
+    ctx.beginPath();
+    ctx.moveTo(-7, -3);
+    ctx.lineTo(-2, -1);
+    ctx.lineTo(-5, 2);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = isFourthReady ? '#ff1744' : '#d500f9';
+    ctx.beginPath();
+    ctx.moveTo(2, -2);
+    ctx.lineTo(8, -4);
+    ctx.lineTo(6, 1.5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Nét khắc miệng lạnh lùng trên mặt nạ
+    ctx.strokeStyle = '#311b92';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-4, 5.5);
+    ctx.quadraticCurveTo(0, 7.5, 5, 5);
+    ctx.stroke();
+
+    // 4. Ống ngắm la-de màu đỏ rực trên đầu hoa
+    ctx.fillStyle = '#212121';
+    ctx.strokeStyle = '#ff1744';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.roundRect(-5, -20, 17, 6, 2);
+    ctx.fill();
+    ctx.stroke();
+
+    // Thấu kính la-de đỏ rực
+    ctx.fillStyle = '#ff1744';
+    ctx.beginPath();
+    ctx.arc(11, -17, isFourthReady ? 3.2 : 2.4, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffebee';
+    ctx.beginPath();
+    ctx.arc(11, -17, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Tia ngắm la-de đỏ rực phóng về phía trước
+    if (!plant.isReloading) {
+      const beamAlpha = isFourthReady ? (0.75 + Math.sin(t * 14) * 0.2) : 0.45;
+      const beamLen = plant.isIcon ? 18 : (isFourthReady ? 140 : 88);
+      ctx.strokeStyle = `rgba(255, 23, 68, ${beamAlpha})`;
+      ctx.lineWidth = isFourthReady ? 2.2 : 1.3;
+      ctx.beginPath();
+      ctx.moveTo(13, -17);
+      ctx.lineTo(13 + beamLen, -17);
+      ctx.stroke();
+    }
+
+    ctx.restore();
+    ctx.restore();
+  }
+
   // 9. Cây Tổng Quát Fallback — Đảm bảo không bao giờ bị tàng hình
   drawGenericPlantGraphics(ctx, plant) {
     ctx.fillStyle = '#2e7d32';
@@ -7359,6 +7707,7 @@ class GameRenderer {
       stage: plantType === 'sun_shroom' ? 2 : 1,
       armed: true,
       sleepTimer: 0,
+      isIcon: true,
       hp: 300,
       maxHp: 300
     };

@@ -234,6 +234,7 @@ class ConveyorBelt {
         wall_nut: '#4e342e', infi_nut: '#00838f',
         cabbage_pult: '#388e3c', melon_pult: '#1b5e20',
         bonk_choy: '#558b2f', snapdragon: '#d84315', chomper: '#6a1b9a', galio: '#0288d1',
+        jhinplant: '#7b1fa2',
         lightning_reed: '#00838f', goo_peashooter: '#512da8',
         potato_mine: '#6d4c41', stunion: '#fbc02d', hypno_shroom: '#7b1fa2',
         cherry_bomb: '#c62828', magnet_shroom: '#37474f'
@@ -275,6 +276,7 @@ class ConveyorBelt {
           snapdragon: '🐉',
           bonk_choy: '🥊',
           galio: '🛡️',
+          jhinplant: '🎭',
           lightning_reed: '⚡',
           stunion: '🧅',
           infi_nut: '🔮',

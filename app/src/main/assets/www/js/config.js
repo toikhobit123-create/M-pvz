@@ -146,6 +146,25 @@ const PLANT_CONFIG = {
     canAttack: true,
     produceSun: false
   },
+  jhinplant: {
+    id: 'jhinplant',
+    name: 'Jhinplant',
+    nameVi: 'Hoa Súng Tử Vong',
+    group: 'straight',
+    cost: 140,
+    hp: 440,
+    atkSpeed: 1.0, // Bắn từng viên cách nhau 1s
+    damage: 125, // Viên 1, 2, 3: 125 DMG
+    fourthShotMultiplier: 4, // Viên thứ 4 gấp 4 dam = 500 DMG
+    magSize: 4,
+    reloadDuration: 4.0, // Nạp đạn 4s sau viên thứ 4
+    lotusTrapDamage: 444, // Bẫy hoa sen nổ 444 DMG AoE 2x2 ô
+    projectileType: 'jhin_bullet',
+    projectileSpeed: 11.0,
+    cooldown: 4.0,
+    canAttack: true,
+    produceSun: false
+  },
 
   // [NHÓM 4: CHỨC NĂNG]
   sunflower: {
@@ -746,6 +765,7 @@ const CONFIG = {
       { plantId: "snapdragon", weight: 18 },
       { plantId: "chomper", weight: 15 },
       { plantId: "galio", weight: 14 },
+      { plantId: "jhinplant", weight: 14 },
       
       // [Khống chế & khắc chế Zombie / Boss]
       { plantId: "magnet_shroom", weight: 25 },

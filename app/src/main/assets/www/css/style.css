@@ -1990,4 +1990,25 @@ canvas#gameCanvas {
   justify-content: flex-end;
 }
 
+/* Native Jetpack Compose Shell Mode: hide HTML overlays & DOM HUD while keeping Canvas 100% live */
+body.native-compose-hud #hud-left,
+body.native-compose-hud #top-center-hud,
+body.native-compose-hud #game-controls,
+body.native-compose-hud #seed-selection-overlay,
+body.native-compose-hud #sandbox-panel,
+body.native-compose-hud #main-menu-overlay,
+body.native-compose-hud #world-map-overlay,
+body.native-compose-hud #pause-overlay,
+body.native-compose-hud #almanac-overlay,
+body.native-compose-hud #dialog-overlay {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+body.native-compose-hud #game-container {
+  background: #0b0910;
+}
+
+
 

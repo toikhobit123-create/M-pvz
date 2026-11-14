@@ -91,6 +91,14 @@ class Plant {
       this.punchDir = 1;
       this.deathSkillTriggered = false;
     }
+    if (type === 'jhinplant') {
+      this.magSize = proto.magSize || 4;
+      this.ammo = this.magSize;
+      this.isReloading = false;
+      this.reloadDuration = proto.reloadDuration || 4.0;
+      this.reloadTimer = 0;
+      this.curtainBarrage = null;
+    }
 
     // Hạt Dẻ Toàn Ảnh: Infi-nut
     if (type === 'infi_nut') {
@@ -236,7 +244,7 @@ class Plant {
     // NHÓM 1: BẮN THẲNG (Straight) - Peashooter, Snow Pea, Repeater, Goo Peashooter
     // (Không bao gồm lightning_reed vì lightning_reed chỉ giật tia sét)
     // ----------------------------------------------------
-    if (this.type !== 'lightning_reed' && (this.group === 'straight' || this.type === 'peashooter' || this.type === 'snow_pea' || this.type === 'repeater' || this.type === 'goo_peashooter')) {
+    if (this.type !== 'lightning_reed' && this.type !== 'jhinplant' && (this.group === 'straight' || this.type === 'peashooter' || this.type === 'snow_pea' || this.type === 'repeater' || this.type === 'goo_peashooter')) {
       if (this.shootTimer > 0) {
         this.shootTimer -= dt;
       }
@@ -273,6 +281,102 @@ class Plant {
           this.shoot(gameState, 'goo_pea');
         } else {
           this.shoot(gameState, 'pea');
+        }
+      }
+    }
+
+    // ----------------------------------------------------
+    // JHINPLANT (Hoa Súng Tử Vong) - 4 viên (125 DMG, viên 4 x4 = 500 DMG) + Nạp đạn 4s
+    // ----------------------------------------------------
+    if (this.type === 'jhinplant') {
+      const proto = PLANT_CONFIG.jhinplant || {};
+
+      // Plant Food: Bắn liên hoàn 4 phát đại bác tử vong
+      if (this.curtainBarrage && this.curtainBarrage.shotsLeft > 0) {
+        this.curtainBarrage.timer -= dt;
+        if (this.curtainBarrage.timer <= 0) {
+          this.curtainBarrage.timer = this.curtainBarrage.interval || 0.16;
+          const isFourthPF = (this.curtainBarrage.shotsLeft === 1);
+          this.curtainBarrage.shotsLeft--;
+
+          const pfDmg = isFourthPF ? 1000 : 250;
+          const proj = gameState.spawnProjectile(
+            'jhin_bullet',
+            this.row,
+            this.x + 26,
+            this.y - 14,
+            pfDmg,
+            13.0
+          );
+          proj.isJhinBullet = true;
+          proj.isFourthShot = isFourthPF;
+          this.state = 'shooting';
+          this.shootStateTimer = 0.2;
+          gameState.spawnParticles(this.x + 24, this.y - 14, isFourthPF ? '#ff1744' : '#e040fb', isFourthPF ? 10 : 5);
+          if (gameState.audio && gameState.audio.playJhinShot) {
+            gameState.audio.playJhinShot(isFourthPF);
+          }
+          if (this.curtainBarrage.shotsLeft === 0) {
+            this.curtainBarrage = null;
+          }
+        }
+      }
+
+      if (this.isReloading) {
+        this.reloadTimer -= dt;
+        if (this.reloadTimer <= 0) {
+          this.isReloading = false;
+          this.reloadTimer = 0;
+          this.ammo = this.magSize || 4;
+          this.shootTimer = 0;
+        }
+      } else {
+        if (this.shootTimer > 0) {
+          this.shootTimer -= dt;
+        }
+
+        const hasTargetAhead = gameState.zombies.some(z => {
+          if (!z.alive || z.isHypnotized) return false;
+          const isBossTarget = z.type === 'zombot_dark_dragon' && (this.row === z.bossRow || this.row === z.bossRow + 1);
+          const matchesRow = z.row === this.row || isBossTarget;
+          return matchesRow && z.x > this.x - 10 && z.x < CONFIG.CANVAS_WIDTH + 60;
+        });
+
+        if (hasTargetAhead && this.shootTimer <= 0) {
+          const isFourthShot = (this.ammo === 1);
+          const baseDmg = proto.damage || 125;
+          const dmg = isFourthShot ? baseDmg * (proto.fourthShotMultiplier || 4) : baseDmg;
+          const speed = proto.projectileSpeed || 11.0;
+
+          const proj = gameState.spawnProjectile(
+            'jhin_bullet',
+            this.row,
+            this.x + 26,
+            this.y - 14,
+            dmg,
+            speed
+          );
+          proj.isJhinBullet = true;
+          proj.isFourthShot = isFourthShot;
+
+          this.state = 'shooting';
+          this.shootStateTimer = isFourthShot ? 0.3 : 0.2;
+          gameState.spawnParticles(this.x + 24, this.y - 14, isFourthShot ? '#ff1744' : '#ba68c8', isFourthShot ? 10 : 4);
+          if (gameState.audio && gameState.audio.playJhinShot) {
+            gameState.audio.playJhinShot(isFourthShot);
+          }
+
+          this.ammo--;
+          if (this.ammo <= 0) {
+            this.isReloading = true;
+            this.reloadTimer = proto.reloadDuration || 4.0;
+            this.shootTimer = 0;
+            if (gameState.spawnFloatingText) {
+              gameState.spawnFloatingText(this.x, this.y - 30, 'IV! NẠP ĐẠN 4s', '#ff1744', 15);
+            }
+          } else {
+            this.shootTimer = proto.atkSpeed || 1.0;
+          }
         }
       }
     }
@@ -1381,6 +1485,25 @@ class Plant {
       gameState.spawnParticles(this.x, this.y, '#ffd54f', 12);
       if (gameState.spawnFloatingText) {
         gameState.spawnFloatingText(this.x, this.y - 28, 'SÓNG VỆ THẦN! ⚡🛡️', '#00e5ff', 18);
+      }
+      return true;
+    }
+
+    if (this.type === 'jhinplant') {
+      this.hp = this.maxHp;
+      this.isReloading = false;
+      this.reloadTimer = 0;
+      this.ammo = this.magSize || 4;
+      this.shootTimer = 0;
+      this.curtainBarrage = {
+        shotsLeft: 4,
+        timer: 0,
+        interval: 0.16
+      };
+      gameState.spawnParticles(this.x + 10, this.y - 10, '#ff1744', 18);
+      gameState.spawnParticles(this.x + 10, this.y - 10, '#e040fb', 14);
+      if (gameState.spawnFloatingText) {
+        gameState.spawnFloatingText(this.x, this.y - 30, 'MÀN HẠ MÀN IV! 🎭🌹', '#ff1744', 18);
       }
       return true;
     }
@@ -2645,6 +2768,51 @@ class Projectile {
         });
       }
       if (this.x > CONFIG.CANVAS_WIDTH + 60) {
+        this.alive = false;
+      }
+      return;
+    }
+
+    // Đạn của Jhinplant: tìm mục tiêu gần nhất phía trước, nếu là viên thứ 4 hạ gục zombie sẽ đặt Bẫy Hoa Sen
+    if (this.isJhinBullet) {
+      let frontZombie = null;
+      let minX = Infinity;
+      for (const z of gameState.zombies) {
+        if (!z.alive || z.isHypnotized) continue;
+        const isBossHitbox = z.type === 'zombot_dark_dragon' && (this.row === z.bossRow || this.row === z.bossRow + 1);
+        const isRowMatch = z.row === this.row || isBossHitbox;
+        const hitHalfW = z.type === 'zombot_dark_dragon' ? 58 : 28;
+        if (isRowMatch && Math.abs(z.x - this.x) < hitHalfW && z.x < minX) {
+          minX = z.x;
+          frontZombie = z;
+        }
+      }
+
+      if (frontZombie) {
+        this.alive = false;
+        const wasAlive = frontZombie.alive;
+        frontZombie.takeDamage(this.damage);
+
+        if (gameState && gameState.audio && gameState.audio.playHit) {
+          gameState.audio.playHit();
+        }
+
+        if (this.isFourthShot) {
+          gameState.spawnParticles(frontZombie.x, frontZombie.y - 12, '#ff1744', 14);
+          gameState.spawnParticles(frontZombie.x, frontZombie.y - 12, '#e040fb', 10);
+          if (gameState.spawnFloatingText) {
+            gameState.spawnFloatingText(frontZombie.x, frontZombie.y - 28, `IV! -${this.damage}`, '#ff1744', 18);
+          }
+          // Skill: Khi viên thứ 4 tiêu diệt Zombie -> đặt 1 Bẫy Hoa Sen tại đó
+          if (wasAlive && !frontZombie.alive && typeof gameState.spawnLotusTrap === 'function') {
+            gameState.spawnLotusTrap(frontZombie.row, frontZombie.x, frontZombie.y);
+          }
+        } else {
+          gameState.spawnParticles(frontZombie.x, frontZombie.y - 10, '#ce93d8', 6);
+        }
+      }
+
+      if (this.x > CONFIG.CANVAS_WIDTH + 20) {
         this.alive = false;
       }
       return;
