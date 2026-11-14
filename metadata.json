@@ -1,0 +1,8 @@
+{
+  "name": "Remix PvZ Tower Defense",
+  "description": "2D Plants vs. Zombies Tower Defense game featuring a 5x9 lawn, sun economy, sunflower, peashooter, and zombies on HTML5 Canvas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Plants vs. Zombies - Dark Horror Edition</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="game-container">
+    <!-- Main Game Canvas (Full Landscape Display maintaining 16:9) -->
+    <div id="canvas-wrapper">
+      <canvas id="gameCanvas" width="960" height="540"></canvas>
+    </div>
+
+    <!-- VERTICAL LEFT HUD: SUN BANK + VERTICAL SEED BANK + SHOVEL (Exact PvZ 2 Layout) -->
+    <!-- Leaving Row 1 (Y: 60-150px) completely clear and unobstructed -->
+    <div id="hud-left">
+      <!-- Sun Bank (Top Left Corner) -->
+      <div id="sun-bank" title="Số lượng Tinh hồn / Mặt trời">
+        <div class="sun-icon-box">
+          <svg viewBox="0 0 36 36" class="sun-svg">
+            <path d="M10 18 C10 8 26 8 26 18 C26 21 24 23 23 27 L13 27 C12 23 10 21 10 18 Z" fill="#cfd8dc" stroke="#263238" stroke-width="1.5"/>
+            <rect x="14" y="27" width="8" height="5" rx="1.5" fill="#eceff1" stroke="#263238" stroke-width="1.2"/>
+            <line x1="16.5" y1="27" x2="16.5" y2="32" stroke="#263238" stroke-width="1"/>
+            <line x1="19.5" y1="27" x2="19.5" y2="32" stroke="#263238" stroke-width="1"/>
+            <ellipse cx="14" cy="18" rx="3.2" ry="3.8" fill="#0d0407"/>
+            <ellipse cx="22" cy="18" rx="3.2" ry="3.8" fill="#0d0407"/>
+            <circle cx="14" cy="18" r="1.8" fill="#ff1744"/>
+            <circle cx="22" cy="18" r="1.8" fill="#ff1744"/>
+            <circle cx="13.5" cy="17.5" r="0.7" fill="#ffffff"/>
+            <circle cx="21.5" cy="17.5" r="0.7" fill="#ffffff"/>
+            <polygon points="18,21 16.5,24 19.5,24" fill="#1b0007"/>
+            <path d="M8 12 Q5 7 9 2 Q13 7 11 12" fill="#ff5252" opacity="0.6"/>
+            <path d="M28 12 Q31 7 27 2 Q23 7 25 12" fill="#ff5252" opacity="0.6"/>
+          </svg>
+        </div>
+        <div class="sun-pill">
+          <span id="sun-count">50</span>
+        </div>
+      </div>
+
+      <!-- Vertical Seed Tray (Holds Chosen 7 Plants Vertically Along Left Edge) -->
+      <div id="seed-bank" class="vertical-seed-tray">
+        <!-- 1. Hướng Dương Hắc Hóa (50 Sun) -->
+        <div class="seed-card" id="card-sunflower" data-plant="sunflower" data-category="classic" tabindex="0" title="Hướng Dương (50 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <circle cx="22" cy="19" r="13" fill="#15081c" stroke="#4a154b" stroke-width="1.5"/>
+                <circle cx="22" cy="19" r="10" fill="#2d0d36"/>
+                <path d="M22 6 L22 13 M22 25 L22 32 M9 19 L16 19 M28 19 L35 19" stroke="#ff1744" stroke-width="1.5" stroke-linecap="round"/>
+                <ellipse cx="22" cy="19" rx="6" ry="5" fill="#000" stroke="#b71c1c" stroke-width="1.2"/>
+                <circle cx="22" cy="19" r="3" fill="#ff1744"/>
+                <circle cx="21" cy="18" r="0.8" fill="#fff"/>
+                <path d="M22 32 Q23 38 22 42" stroke="#122318" stroke-width="3" fill="none"/>
+              </svg>
+            </div>
+            <div class="card-cost">50</div>
+            <div class="cooldown-overlay" id="cooldown-sunflower"></div>
+          </div>
+        </div>
+
+        <!-- 2. Đậu Quỷ Peashooter (100 Sun) -->
+        <div class="seed-card" id="card-peashooter" data-plant="peashooter" data-category="classic" tabindex="0" title="Đậu Peashooter (100 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <ellipse cx="19" cy="18" rx="10" ry="9" fill="#1b4d24" stroke="#0a2612" stroke-width="1.2"/>
+                <ellipse cx="31" cy="18" rx="5" ry="6" fill="#2d733b"/>
+                <ellipse cx="32" cy="18" rx="3" ry="4" fill="#091f0e"/>
+                <polygon points="30,14 32,16 34,14" fill="#fffde7"/>
+                <polygon points="30,22 32,20 34,22" fill="#fffde7"/>
+                <circle cx="17" cy="14" r="2.5" fill="#ffd600"/>
+                <ellipse cx="17" cy="14" rx="0.8" ry="2" fill="#000"/>
+                <path d="M18 27 Q19 36 21 41" stroke="#0e2916" stroke-width="3" fill="none"/>
+              </svg>
+            </div>
+            <div class="card-cost">100</div>
+            <div class="cooldown-overlay" id="cooldown-peashooter"></div>
+          </div>
+        </div>
+
+        <!-- 3. Đậu Băng Snow Pea (175 Sun) -->
+        <div class="seed-card" id="card-snow-pea" data-plant="snow_pea" data-category="classic" tabindex="0" title="Đậu Băng Snow Pea (175 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <ellipse cx="19" cy="18" rx="10" ry="9" fill="#006064" stroke="#00e5ff" stroke-width="1.2"/>
+                <ellipse cx="31" cy="18" rx="5" ry="6" fill="#00bcd4"/>
+                <ellipse cx="32" cy="18" rx="3" ry="4" fill="#00251a"/>
+                <polygon points="12,10 9,6 15,9" fill="#80deea"/>
+                <polygon points="10,16 5,14 11,18" fill="#80deea"/>
+                <polygon points="13,24 8,26 15,22" fill="#80deea"/>
+                <circle cx="17" cy="14" r="2.5" fill="#e0f7fa"/>
+                <circle cx="17" cy="14" r="1.2" fill="#00838f"/>
+                <path d="M18 27 Q19 36 21 41" stroke="#004d40" stroke-width="3" fill="none"/>
+              </svg>
+            </div>
+            <div class="card-cost">175</div>
+            <div class="cooldown-overlay" id="cooldown-snow-pea"></div>
+          </div>
+        </div>
+
+        <!-- 4. Đậu Nòng Đôi Repeater (200 Sun) -->
+        <div class="seed-card" id="card-repeater" data-plant="repeater" data-category="classic" tabindex="0" title="Đậu Nòng Đôi Repeater (200 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <path d="M12 12 Q8 6 12 4 Q16 6 14 12" fill="#4caf50" stroke="#1b5e20" stroke-width="1"/>
+                <path d="M8 15 Q4 11 8 8 Q12 10 10 15" fill="#4caf50" stroke="#1b5e20" stroke-width="1"/>
+                <ellipse cx="20" cy="20" rx="11" ry="10" fill="#2e7d32" stroke="#1b5e20" stroke-width="1.2"/>
+                <ellipse cx="33" cy="20" rx="6" ry="7" fill="#43a047"/>
+                <ellipse cx="34" cy="20" rx="3.5" ry="4.5" fill="#0d280d"/>
+                <circle cx="18" cy="16" r="3" fill="#ffeb3b"/>
+                <circle cx="18" cy="16" r="1.5" fill="#000"/>
+                <path d="M19 29 Q20 37 22 41" stroke="#1b5e20" stroke-width="3" fill="none"/>
+              </svg>
+            </div>
+            <div class="card-cost">200</div>
+            <div class="cooldown-overlay" id="cooldown-repeater"></div>
+          </div>
+        </div>
+
+        <!-- 5. Hạt Dẻ Khổng Lồ Wall-nut (50 Sun) -->
+        <div class="seed-card" id="card-wall-nut" data-plant="wall_nut" data-category="classic" tabindex="0" title="Hạt Dẻ Wall-nut (50 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <ellipse cx="22" cy="22" rx="12" ry="15" fill="#5d4037" stroke="#3e2723" stroke-width="1.5"/>
+                <ellipse cx="20" cy="20" rx="10" ry="13" fill="#795548"/>
+                <circle cx="17" cy="16" r="2.8" fill="#fff"/>
+                <circle cx="17" cy="16" r="1.3" fill="#000"/>
+                <circle cx="26" cy="16" r="2.8" fill="#fff"/>
+                <circle cx="26" cy="16" r="1.3" fill="#000"/>
+                <path d="M18 27 Q22 29 25 27" stroke="#3e2723" stroke-width="1.8" fill="none"/>
+              </svg>
+            </div>
+            <div class="card-cost">50</div>
+            <div class="cooldown-overlay" id="cooldown-wall-nut"></div>
+          </div>
+        </div>
+
+        <!-- 6. Bắp Cải Cabbage-pult (100 Sun) -->
+        <div class="seed-card" id="card-cabbage-pult" data-plant="cabbage_pult" data-category="classic" tabindex="0" title="Bắp Cải Cabbage-pult (100 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <ellipse cx="20" cy="26" rx="10" ry="8" fill="#388e3c" stroke="#1b5e20" stroke-width="1.2"/>
+                <line x1="20" y1="26" x2="28" y2="12" stroke="#8d6e63" stroke-width="3" stroke-linecap="round"/>
+                <circle cx="29" cy="11" r="6" fill="#81c784" stroke="#2e7d32" stroke-width="1.2"/>
+                <circle cx="29" cy="11" r="3" fill="#c8e6c9"/>
+                <circle cx="18" cy="24" r="2" fill="#fff"/>
+                <circle cx="18" cy="24" r="1" fill="#000"/>
+              </svg>
+            </div>
+            <div class="card-cost">100</div>
+            <div class="cooldown-overlay" id="cooldown-cabbage-pult"></div>
+          </div>
+        </div>
+
+        <!-- 7. Dưa Hấu Melon-pult (300 Sun) -->
+        <div class="seed-card" id="card-melon-pult" data-plant="melon_pult" data-category="classic" tabindex="0" title="Dưa Hấu Melon-pult (300 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <ellipse cx="19" cy="27" rx="11" ry="8" fill="#1b5e20" stroke="#0d280d" stroke-width="1.2"/>
+                <line x1="19" y1="27" x2="28" y2="12" stroke="#795548" stroke-width="3.5" stroke-linecap="round"/>
+                <ellipse cx="29" cy="11" rx="8" ry="6" fill="#2e7d32" stroke="#1b5e20" stroke-width="1.2"/>
+                <line x1="25" y1="8" x2="27" y2="14" stroke="#81c784" stroke-width="1.2"/>
+                <line x1="29" y1="7" x2="30" y2="15" stroke="#81c784" stroke-width="1.2"/>
+                <line x1="33" y1="8" x2="32" y2="14" stroke="#81c784" stroke-width="1.2"/>
+              </svg>
+            </div>
+            <div class="card-cost">300</div>
+            <div class="cooldown-overlay" id="cooldown-melon-pult"></div>
+          </div>
+        </div>
+
+        <!-- 8. Cây Đớp Chomper (150 Sun) -->
+        <div class="seed-card" id="card-chomper" data-plant="chomper" data-category="classic" tabindex="0" title="Cây Đớp Chomper (150 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <path d="M16 38 Q18 28 20 22" stroke="#4a148c" stroke-width="3" fill="none"/>
+                <path d="M16 16 C16 8 32 8 32 16 L32 20 C32 28 16 28 16 20 Z" fill="#6a1b9a" stroke="#4a148c" stroke-width="1.2"/>
+                <ellipse cx="25" cy="18" rx="5" ry="4" fill="#12005e"/>
+                <polygon points="20,13 22,17 24,13" fill="#fff"/>
+                <polygon points="26,13 28,17 30,13" fill="#fff"/>
+                <polygon points="20,23 22,19 24,23" fill="#fff"/>
+                <polygon points="26,23 28,19 30,23" fill="#fff"/>
+                <circle cx="19" cy="11" r="1.8" fill="#ffd600"/>
+              </svg>
+            </div>
+            <div class="card-cost">150</div>
+            <div class="cooldown-overlay" id="cooldown-chomper"></div>
+          </div>
+        </div>
+
+        <!-- 9. Bom Anh Đào Cherry Bomb (150 Sun) -->
+        <div class="seed-card" id="card-cherry-bomb" data-plant="cherry_bomb" data-category="classic" tabindex="0" title="Bom Anh Đào (150 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <path d="M15 24 Q22 10 22 6 Q22 10 29 24" stroke="#2e7d32" stroke-width="2.5" fill="none"/>
+                <circle cx="15" cy="27" r="8" fill="#c62828" stroke="#8e0000" stroke-width="1.2"/>
+                <circle cx="13" cy="24" r="1.5" fill="#fff"/>
+                <circle cx="17" cy="24" r="1.5" fill="#fff"/>
+                <polygon points="12,28 15,30 18,28" fill="#000"/>
+                <circle cx="29" cy="27" r="8" fill="#c62828" stroke="#8e0000" stroke-width="1.2"/>
+                <circle cx="27" cy="24" r="1.5" fill="#fff"/>
+                <circle cx="31" cy="24" r="1.5" fill="#fff"/>
+                <polygon points="26,28 29,30 32,28" fill="#000"/>
+                <polygon points="22,2 25,6 21,7 23,10 19,6" fill="#ffeb3b"/>
+              </svg>
+            </div>
+            <div class="card-cost">150</div>
+            <div class="cooldown-overlay" id="cooldown-cherry-bomb"></div>
+          </div>
+        </div>
+
+        <!-- 10. Đấm Bốc Bonk Choy (150 Sun) -->
+        <div class="seed-card" id="card-bonk-choy" data-plant="bonk_choy" data-category="extra" tabindex="0" title="Đấm Bốc Bonk Choy (150 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <path d="M16 38 Q22 28 22 20 Q22 28 28 38 Z" fill="#43a047" stroke="#1b5e20" stroke-width="1.2"/>
+                <ellipse cx="22" cy="15" rx="9" ry="8" fill="#66bb6a" stroke="#2e7d32" stroke-width="1.5"/>
+                <circle cx="17" cy="12" r="2.5" fill="#a5d6a7"/>
+                <circle cx="22" cy="10" r="2.8" fill="#a5d6a7"/>
+                <circle cx="27" cy="12" r="2.5" fill="#a5d6a7"/>
+                <circle cx="19" cy="17" r="1.8" fill="#000"/>
+                <circle cx="25" cy="17" r="1.8" fill="#000"/>
+                <circle cx="18" cy="16" r="0.6" fill="#fff"/>
+                <circle cx="24" cy="16" r="0.6" fill="#fff"/>
+              </svg>
+            </div>
+            <div class="card-cost">150</div>
+            <div class="cooldown-overlay" id="cooldown-bonk-choy"></div>
+          </div>
+        </div>
+
+        <!-- 11. Rồng Lửa Snapdragon (200 Sun) -->
+        <div class="seed-card" id="card-snapdragon" data-plant="snapdragon" data-category="extra" tabindex="0" title="Rồng Lửa Snapdragon (200 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <path d="M18 38 Q18 26 24 18" stroke="#2e7d32" stroke-width="3.5" fill="none"/>
+                <path d="M22 14 L34 16 L28 22 L20 22 Z" fill="#e65100" stroke="#bf360c" stroke-width="1.2"/>
+                <polygon points="34,16 39,14 36,19" fill="#ffeb3b"/>
+                <circle cx="24" cy="16" r="2" fill="#fff"/>
+                <circle cx="24" cy="16" r="1" fill="#000"/>
+                <polygon points="21,14 17,9 23,12" fill="#ff9800"/>
+              </svg>
+            </div>
+            <div class="card-cost">200</div>
+            <div class="cooldown-overlay" id="cooldown-snapdragon"></div>
+          </div>
+        </div>
+
+        <!-- 12. Sậy Sét Lightning Reed (125 Sun) -->
+        <div class="seed-card" id="card-lightning-reed" data-plant="lightning_reed" data-category="extra" tabindex="0" title="Sậy Sét (125 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <path d="M22 41 Q18 26 22 15" stroke="#004d40" stroke-width="3" fill="none"/>
+                <ellipse cx="22" cy="14" rx="7.5" ry="7" fill="#00251a" stroke="#00e5ff" stroke-width="1.5"/>
+                <circle cx="22" cy="14" r="3.5" fill="#18ffff"/>
+                <polygon points="22,1 26,9 21,9 25,16 17,9 21,9" fill="#00e5ff" stroke="#fff" stroke-width="0.8"/>
+              </svg>
+            </div>
+            <div class="card-cost">125</div>
+            <div class="cooldown-overlay" id="cooldown-lightning-reed"></div>
+          </div>
+        </div>
+
+        <!-- 13. Hành Tây Choáng Stunion (25 Sun) -->
+        <div class="seed-card" id="card-stunion" data-plant="stunion" data-category="extra" tabindex="0" title="Hành Tây Choáng (25 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <ellipse cx="22" cy="24" rx="10" ry="11" fill="#2d1338" stroke="#6a1b9a" stroke-width="1.5"/>
+                <ellipse cx="22" cy="24" rx="7" ry="8" fill="#4a148c"/>
+                <path d="M22 11 Q17 3 13 6 Q20 11 22 11 Q24 3 29 6 Q24 11 22 11" fill="#76ff03"/>
+                <ellipse cx="18" cy="22" rx="1.8" ry="2.2" fill="#ea80fc"/>
+                <ellipse cx="26" cy="22" rx="1.8" ry="2.2" fill="#ea80fc"/>
+                <ellipse cx="22" cy="28" rx="3" ry="3.5" fill="#000"/>
+              </svg>
+            </div>
+            <div class="card-cost">25</div>
+            <div class="cooldown-overlay" id="cooldown-stunion"></div>
+          </div>
+        </div>
+
+        <!-- 14. Hạt Dẻ Toàn Ảnh Infi-nut (75 Sun) -->
+        <div class="seed-card" id="card-infi-nut" data-plant="infi_nut" data-category="extra" tabindex="0" title="Hạt Dẻ Toàn Ảnh (75 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <rect x="14" y="32" width="16" height="5" rx="2" fill="#1b2326" stroke="#455a64" stroke-width="1.2"/>
+                <polygon points="22,7 31,18 22,29 13,18" fill="rgba(0, 229, 255, 0.4)" stroke="#00e5ff" stroke-width="1.8"/>
+                <circle cx="22" cy="18" r="3" fill="#fff"/>
+              </svg>
+            </div>
+            <div class="card-cost">75</div>
+            <div class="cooldown-overlay" id="cooldown-infi-nut"></div>
+          </div>
+        </div>
+
+        <!-- 15. Nấm Mặt Trời Sun Shroom (25 Sun) -->
+        <div class="seed-card" id="card-sun-shroom" data-plant="sun_shroom" data-category="extra" tabindex="0" title="Nấm Mặt Trời (25 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <rect x="19" y="24" width="6" height="11" rx="3" fill="#1f1426" stroke="#6a1b9a" stroke-width="1"/>
+                <path d="M10 25 Q22 8 34 25 Z" fill="#4a148c" stroke="#aa00ff" stroke-width="1.5"/>
+                <circle cx="16" cy="18" r="2.2" fill="#76ff03"/>
+                <circle cx="28" cy="18" r="2.2" fill="#76ff03"/>
+                <circle cx="22" cy="13" r="1.8" fill="#00e5ff"/>
+              </svg>
+            </div>
+            <div class="card-cost">25</div>
+            <div class="cooldown-overlay" id="cooldown-sun-shroom"></div>
+          </div>
+        </div>
+
+        <!-- 16. Đậu Bắn Keo Goo Peashooter (125 Sun) -->
+        <div class="seed-card" id="card-goo-peashooter" data-plant="goo_peashooter" data-category="extra" tabindex="0" title="Đậu Bắn Keo Goo Peashooter (125 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <ellipse cx="19" cy="18" rx="10" ry="9" fill="#311b92" stroke="#12005e" stroke-width="1.2"/>
+                <ellipse cx="30" cy="18" rx="4.5" ry="6" fill="#6a1b9a"/>
+                <path d="M31 19 Q34 27 30 29 Q27 27 29 19 Z" fill="#d500f9"/>
+                <circle cx="17" cy="14" r="2" fill="#00e5ff"/>
+                <path d="M18 27 Q19 36 21 41" stroke="#311b92" stroke-width="3" fill="none"/>
+              </svg>
+            </div>
+            <div class="card-cost">125</div>
+            <div class="cooldown-overlay" id="cooldown-goo-peashooter"></div>
+          </div>
+        </div>
+
+        <!-- 17. Mìn Khoai Tây Potato Mine (50 Sun) -->
+        <div class="seed-card" id="card-potato-mine" data-plant="potato_mine" data-category="extra" tabindex="0" title="Mìn Khoai Tây Potato Mine (50 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <ellipse cx="22" cy="27" rx="14" ry="11" fill="#795548" stroke="#3e2723" stroke-width="1.5"/>
+                <ellipse cx="22" cy="26" rx="12" ry="9" fill="#a1887f"/>
+                <ellipse cx="17" cy="25" rx="2.5" ry="3.5" fill="#fff"/>
+                <circle cx="17" cy="25" r="1.3" fill="#000"/>
+                <ellipse cx="27" cy="25" rx="2.5" ry="3.5" fill="#fff"/>
+                <circle cx="27" cy="25" r="1.3" fill="#000"/>
+                <line x1="22" y1="17" x2="22" y2="9" stroke="#3e2723" stroke-width="2.5"/>
+                <circle cx="22" cy="7" r="3.5" fill="#ff1744" stroke="#d50000" stroke-width="1"/>
+              </svg>
+            </div>
+            <div class="card-cost">50</div>
+            <div class="cooldown-overlay" id="cooldown-potato-mine"></div>
+          </div>
+        </div>
+
+        <!-- 18. Nấm Thôi Miên Hypno-shroom (100 Sun) -->
+        <div class="seed-card" id="card-hypno-shroom" data-plant="hypno_shroom" data-category="extra" tabindex="0" title="Nấm Thôi Miên Hypno-shroom (100 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <rect x="19" y="24" width="6" height="12" rx="2" fill="#e1bee7" stroke="#4a148c" stroke-width="1.2"/>
+                <path d="M10 24 C10 11 34 11 34 24 Z" fill="#aa00ff" stroke="#4a148c" stroke-width="1.5"/>
+                <circle cx="16" cy="18" r="2.2" fill="#00e5ff"/>
+                <circle cx="28" cy="18" r="2.2" fill="#00e5ff"/>
+                <circle cx="22" cy="14" r="2.2" fill="#ffeb3b"/>
+                <circle cx="19" cy="28" r="1.5" fill="#d500f9"/>
+                <circle cx="25" cy="28" r="1.5" fill="#d500f9"/>
+              </svg>
+            </div>
+            <div class="card-cost">100</div>
+            <div class="cooldown-overlay" id="cooldown-hypno-shroom"></div>
+          </div>
+        </div>
+
+        <!-- 19. Nấm Nam Châm Magnet-shroom (100 Sun) -->
+        <div class="seed-card" id="card-magnet-shroom" data-plant="magnet_shroom" data-category="extra" tabindex="0" title="Nấm Nam Châm Magnet-shroom (100 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <rect x="18" y="26" width="8" height="12" rx="2" fill="#78909c" stroke="#37474f" stroke-width="1.2"/>
+                <path d="M14 26 C14 12 30 12 30 26 L26 26 C26 16 18 16 18 26 Z" fill="#b0bec5" stroke="#37474f" stroke-width="1.5"/>
+                <rect x="12" y="24" width="6" height="4" fill="#e53935"/>
+                <rect x="26" y="24" width="6" height="4" fill="#1e88e5"/>
+                <circle cx="19" cy="30" r="1.5" fill="#000"/>
+                <circle cx="25" cy="30" r="1.5" fill="#000"/>
+              </svg>
+            </div>
+            <div class="card-cost">100</div>
+            <div class="cooldown-overlay" id="cooldown-magnet-shroom"></div>
+          </div>
+        </div>
+
+        <!-- 20. Vệ Thần Galio (200 Sun) -->
+        <div class="seed-card" id="card-galio" data-plant="galio" data-category="extra" tabindex="0" title="Galio (200 Sun)">
+          <div class="card-inner">
+            <div class="card-icon">
+              <svg viewBox="0 0 44 44" width="32" height="32">
+                <polygon points="8,18 15,12 16,24" fill="#ffd54f" stroke="#8d6e63" stroke-width="1"/>
+                <polygon points="36,18 29,12 28,24" fill="#ffd54f" stroke="#8d6e63" stroke-width="1"/>
+                <rect x="14" y="12" width="16" height="22" rx="5" fill="#eceff1" stroke="#b0bec5" stroke-width="1.4"/>
+                <circle cx="22" cy="22" r="4" fill="#00e5ff"/>
+              </svg>
+            </div>
+            <div class="card-cost">200</div>
+            <div class="cooldown-overlay" id="cooldown-galio"></div>
+          </div>
+        </div>
+      </div> <!-- /#seed-bank -->
+
+      <!-- Shovel Slot (Anchored at Bottom of Left Seed Tray) -->
+      <div id="shovel-slot" class="wooden-slot" title="Xẻng nhổ cây">
+        <div id="shovel-btn" class="shovel-card">
+          <svg viewBox="0 0 44 44" width="28" height="28">
+            <path d="M34 8 L38 12 M36 10 L24 22" stroke="#d7ccc8" stroke-width="4" stroke-linecap="round"/>
+            <circle cx="36" cy="10" r="2" fill="#ff1744"/>
+            <path d="M22 20 L26 24 L17 33 C13 37 9 35 7 33 C5 31 7 27 11 23 Z" fill="#37474f" stroke="#263238" stroke-width="1.8"/>
+            <path d="M12 28 Q8 34 10 35 Q14 34 16 30" fill="#b71c1c"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- Plant Food Slot (PvZ 2 authentic leaf icon) -->
+      <div id="plant-food-slot" class="wooden-slot" title="Plant Food - Siêu Kỹ Năng Cây (Ngắt Hơi Thở Lửa Rồng!)">
+        <div id="plant-food-btn" class="plant-food-card">
+          <svg viewBox="0 0 44 44" width="28" height="28">
+            <path d="M22 6 C10 14 10 32 22 38 C34 32 34 14 22 6 Z" fill="#76ff03" stroke="#1b5e20" stroke-width="1.8"/>
+            <path d="M22 10 L22 34 M16 20 Q22 24 28 20 M18 28 Q22 30 26 28" stroke="#33691e" stroke-width="1.4" fill="none"/>
+            <circle cx="22" cy="18" r="3" fill="#ccff90"/>
+          </svg>
+          <div id="plant-food-count" class="plant-food-badge">3</div>
+        </div>
+      </div>
+    </div> <!-- /#hud-left -->
+
+    <!-- TOP-CENTER HUD: LEVEL NAME & COMPACT WAVE PROGRESS METER -->
+    <!-- Positioned safely at Y = 4-36px, zero overlap with Row 1 -->
+    <div id="top-center-hud">
+      <div id="level-badge" class="level-indicator">CẤP 1: SÂN CỎ MA ÁM</div>
+      <div id="wave-meter" title="Tiến độ đợt tấn công của Zombie">
+        <div class="flag-icon-end" id="wave-flag-icon">
+          <svg viewBox="0 0 24 28" width="16" height="20">
+            <line x1="4" y1="2" x2="4" y2="26" stroke="#cfd8dc" stroke-width="2.5" stroke-linecap="round"/>
+            <polygon points="4,3 20,8 4,14" fill="#e53935" stroke="#b71c1c" stroke-width="1"/>
+          </svg>
+        </div>
+        <div class="meter-track">
+          <div id="wave-progress-bar"></div>
+          <div id="boss-hp-label" class="boss-hp-label">27,000 / 27,000 HP</div>
+          <div id="zombie-head-badge">
+            <svg viewBox="0 0 24 24" width="20" height="20">
+              <circle cx="12" cy="12" r="9" fill="#78909c"/>
+              <circle cx="8" cy="10" r="2.8" fill="#fff"/>
+              <circle cx="8" cy="10" r="1.2" fill="#000"/>
+              <circle cx="15" cy="10" r="2.2" fill="#fff"/>
+              <circle cx="15" cy="10" r="1.0" fill="#000"/>
+              <path d="M8 16 Q12 19 16 16" stroke="#263238" stroke-width="2" fill="none"/>
+              <rect x="10" y="15" width="2" height="2" fill="#fff9c4"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOP-RIGHT COMPACT GAMEPLAY CONTROLS -->
+    <!-- Positioned safely at Y = 4-36px, completely clear of Row 1 -->
+    <div id="game-controls">
+      <button type="button" id="speed-btn" class="wood-btn speed-btn speed-2x" title="Đổi tốc độ (1X / 2X)">
+        <span class="speed-icon">⚡</span>
+        <span id="speed-label">2X</span>
+      </button>
+      <button type="button" id="pause-btn" class="wood-btn pause-btn" title="Tạm dừng / Tiếp tục">
+        <span id="pause-icon">⏸️</span>
+      </button>
+      <button type="button" id="sandbox-btn" class="wood-btn sandbox-toggle-btn highlight-sandbox" title="Mở Sandbox & Kiểm thử game">
+        <span>🛠️ Sandbox</span>
+      </button>
+      <button type="button" id="audio-btn" class="wood-btn audio-btn" title="Bật / Tắt Âm Thanh (BGM & SFX)">
+        <span id="audio-icon">🔊</span>
+      </button>
+      <button type="button" id="almanac-btn" class="wood-btn almanac-btn" title="Từ Điển Cây & Zombie (Almanac)">
+        <span>📖</span>
+      </button>
+      <button type="button" id="map-btn" class="wood-btn" title="Bản đồ cấp độ (World Map)">
+        <span>🗺️</span>
+      </button>
+    </div>
+
+    <!-- CHOOSE YOUR SEEDS OVERLAY (PvZ 2 "CHỌN CÂY VÀO TRẬN" WITH UPCOMING ZOMBIE PREVIEW & SHOWCASE CARD) -->
+    <div id="seed-selection-overlay" class="menu-backdrop hidden">
+      <div class="seed-select-modal">
+        <!-- Modal Top Bar -->
+        <div class="seed-select-header">
+          <div class="seed-header-title-box">
+            <h2 id="seed-select-level-title" class="seed-select-title">CẤP 1: SÂN CỎ MA ÁM</h2>
+            <p id="seed-select-level-sub" class="seed-select-sub">Chọn tối đa 7 loại cây vào đội hình chiến đấu</p>
+          </div>
+          <div class="deck-counter-badge">
+            <span class="deck-counter-label">ĐÃ CHỌN:</span>
+            <span id="deck-counter-value" class="deck-counter-number">7 / 7</span>
+          </div>
+        </div>
+
+        <!-- Modal 3-Column Content Layout -->
+        <div class="seed-select-body">
+          <!-- Column 1 (Left): Selected Deck Slots (7 slots, click to remove) -->
+          <div class="deck-tray-column">
+            <div class="column-header">
+              <span class="col-title">🌱 ĐỘI HÌNH (7)</span>
+            </div>
+            <div id="selected-deck-slots" class="selected-deck-slots">
+              <!-- Populated dynamically: 7 slots -->
+            </div>
+          </div>
+
+          <!-- Column 2 (Middle): Plant Showcase Card + 16-Plant Selection Pool -->
+          <div class="selection-main-column">
+            <!-- Plant Showcase Card (Like Dripphylleia in PvZ 2) -->
+            <div id="plant-showcase-card" class="plant-showcase-card">
+              <div class="showcase-icon-box" id="showcase-icon">
+                <!-- SVG inserted dynamically -->
+              </div>
+              <div class="showcase-info">
+                <div class="showcase-title-row">
+                  <h3 id="showcase-name" class="showcase-name">Peashooter</h3>
+                  <div class="showcase-badges">
+                    <span id="showcase-cost" class="showcase-cost-pill">☀️ 100</span>
+                    <span id="showcase-group" class="showcase-group-pill">BẮN THẲNG</span>
+                  </div>
+                </div>
+                <p id="showcase-desc" class="showcase-desc">Bắn đậu 20 sát thương mỗi 1.425s chuẩn PvZ gốc.</p>
+                <div class="showcase-stats-row">
+                  <span id="showcase-dmg" class="showcase-stat">💥 20 DMG</span>
+                  <span id="showcase-rate" class="showcase-stat">⚡ 1.425s</span>
+                  <span id="showcase-cooldown" class="showcase-stat">⏱️ Hồi: 7.5s</span>
+                  <span id="showcase-hp" class="showcase-stat">🛡️ 300 HP</span>
+                </div>
+              </div>
+              <div class="showcase-action">
+                <button type="button" id="showcase-toggle-btn" class="showcase-toggle-btn">
+                  <span>✓ Bỏ Khỏi Đội</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Selection Pool Header & Grid -->
+            <div class="pool-header">
+              <span class="col-title">🌿 KHO CÂY (16 LOẠI CÂY)</span>
+              <span class="pool-hint">Bấm vào cây để xem thông số & chọn/bỏ khỏi đội</span>
+            </div>
+            <div id="seed-selection-pool" class="seed-selection-pool">
+              <!-- 16 plants populated dynamically with SVGs & states -->
+            </div>
+          </div>
+
+          <!-- Column 3 (Right): Upcoming Zombies Preview (Zombie Sắp Tới) -->
+          <div class="upcoming-zombies-column">
+            <div class="column-header">
+              <span class="col-title">🧟 ZOMBIE SẮP TỚI</span>
+            </div>
+            <div id="upcoming-zombies-list" class="upcoming-zombies-list">
+              <!-- Dynamically populated based on level -->
+            </div>
+            <div class="tactical-tip-box" id="tactical-tip-box">
+              <div class="tip-title">💡 MẸO TÁC CHIẾN:</div>
+              <div id="tactical-tip-content" class="tip-content">Bảo vệ hàng bằng Wall-nut và dùng Peashooter tấn công từ xa!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Bottom Actions Bar -->
+        <div class="seed-select-footer">
+          <div class="footer-left-btns">
+            <button type="button" id="btn-auto-pick-deck" class="deck-tool-btn" title="Tự động chọn 7 cây đề xuất">
+              <span>🎲 Tự Động Chọn</span>
+            </button>
+            <button type="button" id="btn-clear-deck" class="deck-tool-btn" title="Xóa toàn bộ cây trong đội">
+              <span>🧹 Xóa Hết</span>
+            </button>
+            <button type="button" id="btn-back-to-map-from-seeds" class="deck-tool-btn" title="Quay lại Bản Đồ">
+              <span>🗺️ Bản Đồ</span>
+            </button>
+          </div>
+          <button type="button" id="btn-lets-rock" class="btn-lets-rock" title="Bắt đầu trận chiến với đội hình này">
+            <span class="rock-icon">🎸</span>
+            <span class="rock-text">VÀO TRẬN! (LET'S ROCK! ▶)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Draggable Sandbox / Debug Control Panel (Top-Right) -->
+    <div id="sandbox-panel" class="hidden">
+      <div class="sandbox-header" title="Kéo thả để di chuyển bảng điều khiển">
+        <div class="sandbox-title">🛠️ BẢNG ĐIỀU KHIỂN SANDBOX</div>
+        <button id="sandbox-close-btn" class="sandbox-close" title="Đóng panel">✕</button>
+      </div>
+
+      <div class="sandbox-section">
+        <div class="sandbox-label">☀️ KINH TẾ SUN:</div>
+        <div class="sandbox-row">
+          <button id="sb-add-1000-sun" class="sb-btn sb-btn-sun">+1000 ☀️</button>
+          <button id="sb-add-100-sun" class="sb-btn sb-btn-sun">+100 ☀️ (S)</button>
+          <button id="sb-max-sun" class="sb-btn sb-btn-sun">9999 ☀️</button>
+        </div>
+      </div>
+
+      <div class="sandbox-section">
+        <div class="sandbox-label">🧟 CHỌN HÀNG TRIỆU HỒI (ROW 1-5):</div>
+        <div class="sandbox-row">
+          <select id="sb-row-select" class="sb-select">
+            <option value="-1">Tự động / Theo trỏ chuột</option>
+            <option value="0">Hàng 1 (Trên cùng)</option>
+            <option value="1">Hàng 2</option>
+            <option value="2">Hàng 3 (Giữa)</option>
+            <option value="3">Hàng 4</option>
+            <option value="4">Hàng 5 (Dưới cùng)</option>
+          </select>
+        </div>
+        <div class="sandbox-grid">
+          <button id="sb-spawn-basic" class="sb-btn" title="Zombie Cơ Bản">🧟 Basic (Z)</button>
+          <button id="sb-spawn-regular" class="sb-btn" style="display:none;" title="Regular">Regular</button>
+          <button id="sb-spawn-conehead" class="sb-btn" title="Zombie Nón">🪖 Conehead (C)</button>
+          <button id="sb-spawn-buckethead" class="sb-btn" title="Zombie Xô Sắt">🪣 Buckethead (B)</button>
+          <button id="sb-spawn-pole-vaulting" class="sb-btn" title="Zombie Cầm Sào">🏃 Pole Vault (P)</button>
+          <button id="sb-spawn-gargantuar" class="sb-btn sb-btn-boss" title="BOSS Khổng Lồ Gargantuar">👹 Gargantuar (G)</button>
+          <button id="sb-spawn-imp" class="sb-btn" title="Quỷ Lùn Imp">🦹 Imp (I)</button>
+          <button id="sb-spawn-tombstone" class="sb-btn" title="Bia Mộ Chặn Đạn Thẳng">🪦 Bia Mộ (T)</button>
+          <button id="sb-spawn-bully" class="sb-btn sb-btn-bully" title="Jurassic Bully Kháng Đẩy Lùi">🦣 J. Bully (J)</button>
+          <button id="sb-spawn-skull" class="sb-btn sb-btn-skull" title="Turquoise Skull Bắn Laser">💀 T. Skull (T)</button>
+          <button id="sb-spawn-dragon" class="sb-btn sb-btn-boss" title="Trùm Zombot Dark Dragon (27.000 HP)">🐲 Zombot Dragon</button>
+          <button id="sb-spawn-imp-dragon" class="sb-btn" title="Imp Dragon Kháng Lửa">🦎 Imp Dragon</button>
+          <button id="sb-spawn-troglobite" class="sb-btn" title="Troglobite Đẩy Khối Băng (470 HP, Nghiền Cây)">🧊 Troglobite</button>
+          <button id="sb-spawn-yeti-imp" class="sb-btn" title="Yeti Imp Nhanh Nhẹn (190 HP, 100 DMG)">❄️ Yeti Imp</button>
+          <button id="sb-spawn-lang-khach" class="sb-btn" title="Lãng Khách Zombie (600 HP, Lướt, Bất Tử 3s, Lốc Xoáy 1800)">🌪️ Lãng Khách (L)</button>
+        </div>
+      </div>
+
+      <div class="sandbox-section">
+        <div class="sandbox-label">⚙️ TIỆN ÍCH DỌN DẸP & TỐC ĐỘ:</div>
+        <div class="sandbox-row">
+          <button id="sb-clear-all" class="sb-btn sb-btn-danger">💥 Dọn Hết Sân</button>
+          <button id="sb-clear-zombies" class="sb-btn sb-btn-danger">🧹 Xóa Zombie</button>
+          <button id="sb-reset-level" class="sb-btn">🔄 Reset Màn</button>
+          <button id="sb-toggle-speed" class="sb-btn">⚡ Tốc Độ 1X/2X</button>
+          <button id="sb-reset-cooldowns" class="sb-btn" aria-pressed="false" title="Bật/Tắt hồi chiêu 0s liên tục khi trồng cây">⏱️ Hồi Chiêu 0s: TẮT</button>
+        </div>
+      </div>
+
+      <div class="sandbox-shortcuts">
+        <span>💡 <b>S</b>: +100 Sun | <b>Z/C/B/P/G/T/J</b>: Gọi Zombie | <b>Space</b>: Tốc độ x1/x2</span>
+      </div>
+    </div>
+
+    <!-- MAIN MENU OVERLAY -->
+    <div id="main-menu-overlay" class="menu-backdrop">
+      <div class="menu-card">
+        <div class="menu-header">
+          <h1 class="menu-title">PLANTS VS. ZOMBIES</h1>
+          <p class="menu-subtitle">CHIẾN DỊCH BẢO VỆ NGÔI NHÀ ĐÊM HẮC HÓA</p>
+        </div>
+        <div class="menu-actions">
+          <button id="btn-start-game" class="menu-btn menu-btn-primary">
+            <span class="btn-icon">▶</span>
+            <span class="btn-text">BẮT ĐẦU CHIẾN DỊCH (WORLD MAP)</span>
+          </button>
+          <button id="btn-sandbox-mode" class="menu-btn menu-btn-sandbox">
+            <span class="btn-icon">🛠️</span>
+            <span class="btn-text">CHẾ ĐỘ THỬ NGHIỆM (SANDBOX 9999 SUN)</span>
+          </button>
+        </div>
+        <div class="menu-footer">
+          <span>🌿 Lưới 9x5 · 5 Máy Cắt Cỏ · Hệ Thống Cây & Zombie Chuẩn PVZ 2026</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- WORLD MAP OVERLAY (5 CẤP ĐỘ CHIẾN DỊCH) -->
+    <div id="world-map-overlay" class="menu-backdrop hidden">
+      <div class="map-card">
+        <div class="map-header">
+          <h2 class="map-title">🗺️ BẢN ĐỒ CHIẾN DỊCH (5 CẤP ĐỘ)</h2>
+          <p class="map-subtitle">Vượt qua từng cấp độ để mở khóa thử thách tiếp theo</p>
+        </div>
+
+        <div class="level-grid">
+          <!-- Level 1 -->
+          <button id="level-btn-1" class="level-card unlocked" data-level="1">
+            <div class="level-number">CẤP 1</div>
+            <div class="level-name">SÂN CỎ MA ÁM</div>
+            <div class="level-desc">Basic Zombie · Tốc độ cơ bản 5.0s/ô</div>
+            <div id="lock-badge-1" class="level-status">✅ ĐÃ MỞ</div>
+          </button>
+
+          <!-- Level 2 -->
+          <button id="level-btn-2" class="level-card unlocked" data-level="2">
+            <div class="level-number">CẤP 2</div>
+            <div class="level-name">BIA MỘ CỔ TÍCH</div>
+            <div class="level-desc">Conehead Zombie & Bia Mộ cản đạn thẳng</div>
+            <div id="lock-badge-2" class="level-status">✅ ĐÃ MỞ</div>
+          </button>
+
+          <!-- Level 3 -->
+          <button id="level-btn-3" class="level-card unlocked" data-level="3">
+            <div class="level-number">CẤP 3</div>
+            <div class="level-name">BỌC THÉP CÀN QUÉT</div>
+            <div class="level-desc">Thêm Buckethead Zombie · Số lượng x1.5</div>
+            <div id="lock-badge-3" class="level-status">✅ ĐÃ MỞ</div>
+          </button>
+
+          <!-- Level 4 -->
+          <button id="level-btn-4" class="level-card unlocked" data-level="4">
+            <div class="level-number">CẤP 4</div>
+            <div class="level-name">BẬT NHẢY TỬ THẦN</div>
+            <div class="level-desc">Thêm Pole Vaulting Zombie · Số lượng x2.0</div>
+            <div id="lock-badge-4" class="level-status">✅ ĐÃ MỞ</div>
+          </button>
+
+          <!-- Level 5 -->
+          <button id="level-btn-5" class="level-card unlocked level-card-boss" data-level="5">
+            <div class="level-number">CẤP 5</div>
+            <div class="level-name">TRÙM GARGANTUAR</div>
+            <div class="level-desc">BOSS Khổng Lồ 3000 HP (1-hit phá cây) · Số lượng x3.0</div>
+            <div id="lock-badge-5" class="level-status">✅ ĐÃ MỞ</div>
+          </button>
+
+          <!-- Level 6 -->
+          <button id="level-btn-6" class="level-card unlocked level-card-boss" data-level="6" style="border-color: #ff3d00; background: radial-gradient(circle at top, rgba(255, 61, 0, 0.25), rgba(18, 0, 30, 0.95));">
+            <div class="level-number" style="color: #ff3d00;">CẤP 6</div>
+            <div class="level-name" style="color: #ff9100;">ZOMBOT DARK DRAGON</div>
+            <div class="level-desc">BOSS RỒNG HẮC ÁM 27.000 HP · Cầu lửa thiêu đất 10s · Khạc lửa 2 hàng</div>
+            <div id="lock-badge-6" class="level-status">✅ ĐÃ MỞ</div>
+          </button>
+        </div>
+
+        <div class="map-actions">
+          <button id="btn-play-unlocked-level" class="menu-btn menu-btn-primary" style="margin-right: 12px;">
+            <span>▶ VÀO TRẬN CẤP 1 (SÂN CỎ MA ÁM)</span>
+          </button>
+          <button id="btn-reset-progress" class="menu-btn menu-btn-danger" style="margin-right: 12px;" title="Đặt lại tiến trình về Cấp 1">
+            <span>🔄 ĐẶT LẠI TIẾN TRÌNH</span>
+          </button>
+          <button id="btn-back-to-menu" class="menu-btn menu-btn-back">
+            <span>⬅ QUAY LẠI MENU CHÍNH</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dedicated Gothic Pause Overlay -->
+    <div id="pause-overlay" class="menu-backdrop hidden">
+      <div class="pause-card">
+        <div class="pause-header">
+          <h2 class="pause-title">⏸️ TRÒ CHƠI ĐANG TẠM DỪNG</h2>
+          <p class="pause-subtitle">Chiến trường tạm lắng. Các hiệp sĩ thực vật đang giữ vững hàng phòng thủ!</p>
+        </div>
+        <div class="pause-actions">
+          <button id="pause-resume-btn" class="menu-btn menu-btn-primary">
+            <span class="btn-icon">▶</span>
+            <span class="btn-text">TIẾP TỤC CHIẾN ĐẤU</span>
+          </button>
+          <button id="pause-restart-btn" class="menu-btn menu-btn-sandbox">
+            <span class="btn-icon">🔄</span>
+            <span class="btn-text">CHƠI LẠI TỪ ĐẦU</span>
+          </button>
+          <button id="pause-map-btn" class="menu-btn menu-btn-back">
+            <span class="btn-icon">🗺️</span>
+            <span class="btn-text">QUAY LẠI BẢN ĐỒ</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SUBURBAN ALMANAC MODAL (TỪ ĐIỂN CÂY & ZOMBIE) -->
+    <div id="almanac-overlay" class="menu-backdrop hidden">
+      <div class="almanac-modal">
+        <div class="almanac-header">
+          <div class="almanac-tabs">
+            <button type="button" id="almanac-tab-plants" class="almanac-tab active">
+              <span>🌿 TỪ ĐIỂN CÂY TRỒNG</span>
+            </button>
+            <button type="button" id="almanac-tab-zombies" class="almanac-tab">
+              <span>🧟 TỪ ĐIỂN XÁC SỐNG</span>
+            </button>
+          </div>
+          <button type="button" id="almanac-close-btn" class="almanac-close-btn" title="Đóng từ điển">✕</button>
+        </div>
+
+        <div class="almanac-body">
+          <!-- Left Column: Items Grid -->
+          <div class="almanac-grid-column">
+            <div id="almanac-grid" class="almanac-grid">
+              <!-- Dynamically populated cards -->
+            </div>
+          </div>
+
+          <!-- Right Column: Detail Showcase Card -->
+          <div class="almanac-detail-column">
+            <div id="almanac-showcase-box" class="almanac-showcase-box">
+              <div class="almanac-showcase-visual" id="almanac-visual">
+                <!-- SVG Icon or Avatar -->
+              </div>
+              <div class="almanac-showcase-title-box">
+                <div id="almanac-name" class="almanac-name">Tên Mục</div>
+                <div id="almanac-subtitle" class="almanac-subtitle">Phân loại / Vai trò</div>
+              </div>
+              <div class="almanac-stats-grid" id="almanac-stats">
+                <!-- Stat chips (Cost, Recharge, Damage, HP, Speed...) -->
+              </div>
+              <div class="almanac-desc-box">
+                <div class="almanac-desc-label">📖 THÔNG TIN CHI TIẾT:</div>
+                <div id="almanac-desc" class="almanac-desc">Mô tả đặc điểm tác chiến...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="almanac-footer">
+          <button type="button" id="almanac-close-footer-btn" class="menu-btn menu-btn-primary">
+            <span>✓ ĐÓNG TỪ ĐIỂN</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Game Over / Victory Modal -->
+    <div id="dialog-overlay" class="hidden">
+      <div id="dialog-box">
+        <h2 id="dialog-title">GAME OVER</h2>
+        <p id="dialog-message">Zombies đã xâm nhập vào ngôi nhà của bạn!</p>
+        <div class="dialog-buttons">
+          <button id="dialog-restart-btn" class="modal-btn">Chơi Lại</button>
+          <button id="dialog-next-btn" class="modal-btn modal-btn-next">Màn Kế Tiếp ▶</button>
+          <button id="dialog-map-btn" class="modal-btn modal-btn-map">Về Bản Đồ 🗺️</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts: Loaded in strict dependency order -->
+  <script src="js/config.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/entities.js"></script>
+  <script src="js/systems.js"></script>
+  <script src="js/ConveyorBelt.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
